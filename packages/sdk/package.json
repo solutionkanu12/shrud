@@ -1,0 +1,27 @@
+{
+  "name": "@shrud/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean"
+  },
+  "dependencies": {
+    "@shrud/shared": "workspace:*",
+    "@shrud/clearing-math": "workspace:*",
+    "@shrud/nox-client": "workspace:*",
+    "@shrud/safe-client": "workspace:*",
+    "@shrud/contracts-generated": "workspace:*",
+    "viem": "2.55.10"
+  }
+}

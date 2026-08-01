@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "references": [
+    {
+      "path": "../shared"
+    },
+    {
+      "path": "../clearing-math"
+    },
+    {
+      "path": "../nox-client"
+    },
+    {
+      "path": "../safe-client"
+    },
+    {
+      "path": "../contracts-generated"
+    }
+  ]
+}
