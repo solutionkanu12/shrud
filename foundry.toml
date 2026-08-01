@@ -1,0 +1,88 @@
+[profile.default]
+# Foundry covers the DETERMINISTIC half of shrud only: the registries, the module guard, the
+# reference-price registry, the settlement adapters and the plaintext clearing maths. Anything that
+# imports `sdk/Nox.sol` lives under contracts/clearing, contracts/settlement, contracts/accounts and
+# contracts/disclosure and is built and tested by Hardhat against the real Nox stack — a Foundry
+# test would have to fake NoxCompute, and a faked confidentiality path is not evidence of anything.
+#
+# `src` is scoped rather than pointed at `contracts/` so this is structural: a new Nox-importing
+# contract cannot accidentally land in the Foundry suite and appear covered.
+src = "contracts"
+out = "out"
+libs = ["node_modules", "lib"]
+test = "test"
+script = "scripts/forge"
+
+solc_version = "0.8.36"
+evm_version = "osaka"
+via_ir = true
+optimizer = true
+optimizer_runs = 200
+bytecode_hash = "none"
+
+# EIP-7825 (Osaka) caps one transaction at 2^24 gas. Fuzz and invariant runs that quietly exceed
+# what a real chain accepts prove nothing, so the limit is stated here too.
+gas_limit = 16777216
+
+fs_permissions = [{ access = "read", path = "./deployments" }]
+
+# Fork tests need `--fork-url` and a gas limit the real chain does not impose on a single
+# transaction. `LiveProtocols.t.sol` self-skips on a wrong chain id, but `Deployment.t.sol` embeds
+# fourteen contracts' creation code and so fails in ITS OWN CONSTRUCTOR — before any guard can run.
+# Excluding the directory here means a bare `forge test` reports what it actually checked, rather
+# than a failure whose cause is "you did not pass a flag".
+no_match_path = "test/fork/*"
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# The fork profile raises the gas limit, and ONLY because of the test harness.
+#
+# `test/fork/Deployment.t.sol` embeds the creation code of fourteen contracts, so deploying the TEST
+# CONTRACT ITSELF exceeds 2^24 gas — long before any protocol transaction runs. That deployment is
+# not a protocol transaction and is not subject to EIP-7825, so capping it there measures the wrong
+# thing and reports `OutOfGas` from a constructor with no useful trace.
+#
+# The default profile keeps the real cap, because that is what models the chain. Every protocol
+# transaction shrud actually sends is sized against it by `@shrud/clearing-math`'s `planClearing`,
+# which is where the constraint belongs.
+[profile.fork]
+gas_limit = 3000000000
+match_path = "test/fork/*"
+# Profiles INHERIT from default, so the default's `no_match_path = "test/fork/*"` would otherwise
+# exclude exactly the tests this profile exists to run — and forge reports that as "No tests found",
+# which reads like a missing file rather than two settings cancelling out.
+no_match_path = "test/.never-matches/*"
+
+[profile.fork.fuzz]
+runs = 64
+
+[profile.default.fuzz]
+runs = 512
+max_test_rejects = 200000
+
+[profile.default.invariant]
+runs = 256
+depth = 64
+fail_on_revert = false
+call_override = false
+shrink_run_limit = 5000
+
+[profile.ci.fuzz]
+runs = 4096
+
+[profile.ci.invariant]
+runs = 1024
+depth = 128
+
+[fmt]
+line_length = 110
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+multiline_func_header = "params_first"
+sort_imports = true
+
+[rpc_endpoints]
+sepolia = "${SEPOLIA_RPC_URL}"
+
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}", chain = 11155111 }

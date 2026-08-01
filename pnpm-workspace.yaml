@@ -1,0 +1,14 @@
+packages:
+  - packages/*
+  - apps/*
+
+onlyBuiltDependencies:
+  - esbuild
+
+# Transitive advisories in the Hardhat 3 / Nox toolchain. Every one arrives through `hardhat` or
+# `@nomicfoundation/hardhat-toolbox-viem`, is development-only, and reaches no deployed artifact —
+# but "it is only a dev dependency" is how a supply-chain compromise gets in. Versions are EXACT,
+# like every other pin here: a range would let the thing that fixed a supply-chain advisory drift
+# on the next install with no commit saying so.
+overrides:
+  undici: 6.28.0

@@ -1,0 +1,21 @@
+node_modules/
+dist/
+out/
+cache/
+artifacts/
+.env
+.env.local
+
+# Nested env files too. The root .env is the single source of truth and `apps/web/next.config.ts`
+# loads its NEXT_PUBLIC_ values, so a per-app copy should never be needed. These patterns exist
+# because "should never be needed" is not the same as "cannot happen", and the cost of being wrong
+# once is a published private key.
+**/.env
+**/.env.*
+!**/.env.example
+.runtime/
+coverage/
+*.tsbuildinfo
+.next/
+.DS_Store
+broadcast/*/dry-run/

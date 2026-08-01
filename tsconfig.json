@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/shared" },
+    { "path": "./packages/clearing-math" },
+    { "path": "./packages/nox-client" },
+    { "path": "./packages/safe-client" },
+    { "path": "./packages/verification" },
+    { "path": "./packages/sdk" },
+    { "path": "./packages/adapter-sdk" },
+    { "path": "./packages/contracts-generated" }
+  ]
+}

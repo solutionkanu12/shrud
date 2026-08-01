@@ -1,0 +1,193 @@
+{
+  "$comment": "shrud source lock. Every entry below was retrieved from package source or live Ethereum Sepolia chain state on 2026-07-31 (UTC). Reproduction commands live in docs/SOURCE-LOCK.md. Never edit this file from memory.",
+  "retrievedAt": "2026-07-31T11:55:00Z",
+  "chain": {
+    "name": "Ethereum Sepolia",
+    "chainId": 11155111,
+    "blockAtVerification": 11389757,
+    "verificationMethod": "eth_chainId + eth_blockNumber + eth_getCode + eth_call against the configured archive RPC"
+  },
+  "nox": {
+    "docs": "https://docs.noxprotocol.io/",
+    "deployment": {
+      "network": "Ethereum Sepolia",
+      "chainId": 11155111,
+      "noxComputeProxy": "0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF",
+      "proxyCodeSizeBytes": 89,
+      "gateway": "0xE13191F53671957C8a48A7A3Ff15E16450a1552F",
+      "gatewayUrl": "https://gateway-testnets.noxprotocol.dev",
+      "subgraphUrl": "https://thegraph.ethereum-sepolia-testnet.noxprotocol.io/api/subgraphs/id/9CsccKwvgYFo72zZeU4k4wj2NEBLdWhVE3EUandgmzgo",
+      "verifiedBy": "eth_getCode on the proxy; eth_call gateway() -> 0xe13191f5...; POST /v0/public/handles/status answered 400 for a malformed handle, proving the endpoint is live"
+    },
+    "alsoDeployed": {
+      "arbitrumSepolia": {
+        "chainId": 421614,
+        "noxComputeProxy": "0xd464B198f06756a1d00be223634b85E0a731c229",
+        "note": "Different contract version and different KMS keys. shrud does not claim portability."
+      },
+      "hardhatLocal": {
+        "chainId": 31337,
+        "noxComputeProxy": "0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685",
+        "note": "Injected by @iexec-nox/nox-hardhat-plugin. Read from sdk/Nox.sol::noxComputeContract."
+      }
+    },
+    "packages": {
+      "@iexec-nox/nox-protocol-contracts": {
+        "version": "0.2.4",
+        "solidityPragma": "^0.8.35",
+        "sdkPath": "contracts/sdk/Nox.sol",
+        "note": "MIT on sdk/Nox.sol, interfaces/INoxCompute.sol and utils/*; BUSL-1.1 on the core modules. package.json says MIT for the whole package, which is a discrepancy shrud records rather than relies on."
+      },
+      "@iexec-nox/nox-confidential-contracts": {
+        "version": "0.2.2",
+        "provides": "ERC7984, ERC7984Raw, ERC20ToERC7984Wrapper, IERC7984, IERC7984Receiver, IERC20ToERC7984Wrapper"
+      },
+      "@iexec-nox/nox-hardhat-plugin": {
+        "version": "0.1.0",
+        "peerDependencies": { "hardhat": "^3.4.0" },
+        "note": "Boots the real Nox stack in Docker: KMS, ingestor, runner, handle gateway. Discovers the gateway's Docker-assigned host port and exports NOX_HANDLE_GATEWAY_HOST_PORT."
+      },
+      "@iexec-nox/handle": {
+        "version": "0.1.0-beta.13",
+        "stable": false,
+        "note": "Browser and Node handle client. encryptInput / decrypt / publicDecrypt."
+      },
+      "encrypted-types": { "version": "0.0.4" }
+    },
+    "solidityApiSurface": {
+      "verifiedAgainst": "@iexec-nox/nox-protocol-contracts@0.2.4 contracts/sdk/Nox.sol",
+      "types": ["ebool", "euint16", "euint256", "eint16", "eint256"],
+      "externalTypes": ["externalEbool", "externalEuint16", "externalEuint256", "externalEint16", "externalEint256"],
+      "arithmetic": ["add", "sub", "mul", "div", "safeAdd", "safeSub", "safeMul", "safeDiv"],
+      "comparison": ["eq", "ne", "lt", "le", "gt", "ge"],
+      "control": ["select"],
+      "balance": ["transfer", "mint", "burn"],
+      "trivialEncrypt": ["toEbool", "toEuint16", "toEuint256", "toEint16", "toEint256"],
+      "input": ["fromExternal"],
+      "acl": ["allow", "allowThis", "allowTransient", "disallowTransient", "isAllowed"],
+      "viewers": ["addViewer", "isViewer"],
+      "publicDecryption": ["allowPublicDecryption", "isPubliclyDecryptable", "publicDecrypt"],
+      "absent": [
+        "and", "or", "not", "xor",
+        "select with an ebool result overload",
+        "min", "max", "rem", "mod", "shifts", "bitwise",
+        "mul or div with a plaintext operand",
+        "a fused mulDiv",
+        "any batch entry point",
+        "removeViewer", "removeAdmin", "any way to un-set allowPublicDecryption"
+      ],
+      "teeTypeIndexes": { "Bool": 0, "Uint16": 5, "Uint256": 35, "Int16": 37, "Int256": 67 },
+      "operatorIndexes": {
+        "wrapAsPublicHandle": 0, "add": 1, "sub": 2, "mul": 3, "div": 4,
+        "safeAdd": 5, "safeSub": 6, "safeMul": 7, "safeDiv": 8, "select": 9,
+        "eq": 10, "ne": 11, "lt": 12, "le": 13, "gt": 14, "ge": 15,
+        "transfer": 16, "mint": 17, "burn": 18
+      },
+      "handleDerivation": "handle = (keccak256(abi.encode(operator, operands, noxCompute, uniqueSeed, outputIndex)) >> 56) | version<<248 | chainId<<216 | teeType<<208 | attrs<<200; uniqueSeed is 0 when ANY operand is confidential (deterministic) and ++storageCounter when EVERY operand is public (not reproducible off chain)."
+    }
+  },
+  "safe": {
+    "packageUsedForAddresses": "@safe-global/safe-deployments@1.37.60",
+    "packageUsedForSource": "@safe-global/safe-smart-account@1.5.0",
+    "launchVersion": "1.5.0",
+    "reason": "setModuleGuard, IModuleGuard.checkModuleTransaction and checkAfterModuleExecution exist ONLY from 1.5.0. Safe 1.4.1 has a transaction guard that does not cover execTransactionFromModule, so shrud's guarded-module requirement (PRD section 9.3) cannot be met on 1.4.1.",
+    "sepolia": {
+      "Safe": "0xFf51A5898e281Db6DfC7855790607438dF2ca44b",
+      "SafeL2": "0xEdd160fEBBD92E350D4D398fb636302fccd67C7e",
+      "SafeProxyFactory": "0x14F2982D601c9458F93bd70B218933A6f8165e7b",
+      "CompatibilityFallbackHandler": "0x3EfCBb83A4A7AfcB4F68D501E2c2203a38be77f4",
+      "codeVerified": true,
+      "singletonCodeSizeBytes": 21451
+    },
+    "sepolia_1_4_1_forReference": {
+      "Safe": "0x41675C099F32341bf84BFc5382aF534df5C7461a",
+      "SafeProxyFactory": "0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67",
+      "note": "Deployed and usable, but has no module guard. shrud refuses to install on it."
+    },
+    "verifiedSignatures": {
+      "checkSignatures": "checkSignatures(address executor, bytes32 dataHash, bytes signatures)",
+      "checkSignaturesLegacy": "checkSignatures(bytes32 dataHash, bytes data, bytes signatures) — data is IGNORED; forwards msg.sender as executor",
+      "checkNSignatures": "checkNSignatures(address executor, bytes32 dataHash, bytes signatures, uint256 requiredSignatures)",
+      "setModuleGuard": "setModuleGuard(address moduleGuard) — authorized, i.e. Safe-self-call only",
+      "moduleGuardStorageSlot": "0xb104e0b93118902c651344349b610029d694cfdec91c589c91ebafbcd0289947",
+      "moduleGuardInterfaceId": "0x58401ed8",
+      "execTransactionFromModule": "execTransactionFromModule(address to, uint256 value, bytes data, Enum.Operation operation)",
+      "executorSemantics": "In checkNSignatures, a v==1 (approved hash) signature is accepted when executor == currentOwner EVEN WITHOUT an on-chain approval. shrud therefore passes address(0) as executor so a relayer who happens to be an owner cannot mint a free signature."
+    }
+  },
+  "uniswap": {
+    "source": "https://developers.uniswap.org/docs/protocols/v3/deployments/v3-ethereum-deployments",
+    "sepolia": {
+      "UniswapV3Factory": "0x0227628f3F023bb0B980b67D528571c95c6DaC1c",
+      "SwapRouter02": "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E",
+      "QuoterV2": "0xEd1f6473345F45b75F8179591dd5bA1888cf2FB3",
+      "NonfungiblePositionManager": "0x1238536071E1c677A632429e3655c799b22cDA52",
+      "UniversalRouter": "0x3A9D48AB9751398BbFa63ad67599Bb04e4BdF98b",
+      "Permit2": "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+      "WETH9": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
+      "allCodeVerified": true
+    },
+    "launchPool": {
+      "address": "0xba57efa18073647e5269db04ff70b8e26fd0beaf",
+      "token0": "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8",
+      "token0Symbol": "USDC",
+      "token0Decimals": 6,
+      "token1": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
+      "token1Symbol": "WETH",
+      "token1Decimals": 18,
+      "fee": 500,
+      "liquidityAtVerification": "179828542016647",
+      "observationCardinality": 100,
+      "observationIndex": 80,
+      "oldestObservationTimestamp": 1782218088,
+      "oldestObservationIso": "2026-06-23T12:34:48Z",
+      "observedTick1800s": 120482,
+      "twapWindowsProvenToWork": [1800, 600, 300, 60],
+      "whyThisPool": "It is the ONLY Uniswap V3 pool on Sepolia that pairs a token Aave V3 Sepolia actually lists as a reserve (USDC 0x94a9...) with a WETH that has real liquidity, AND has a non-zero observation cardinality so observe() can return a TWAP. The alternatives are recorded below and each fails one of those two tests."
+    },
+    "poolsConsideredAndRejected": [
+      { "pair": "WETH9/CircleUSDC-0x1c7D...", "fee": 3000, "pool": "0x6ce0896eae6d4bd668fde41bb784548fb8f59b50", "liquidity": "7373446282167956", "observationCardinality": 119, "tick": 174310, "rejectedBecause": "CircleUSDC 0x1c7D4B19... is not an Aave V3 Sepolia reserve, so one order family could not both cross on Uniswap and supply to Aave with the same confidential asset." },
+      { "pair": "WETH9/AaveUSDC", "fee": 3000, "pool": "0x9799b5edc1aa7d3fad350309b08df3f64914e244", "liquidity": "688603749971085", "observationCardinality": 0, "rejectedBecause": "observationCardinality is 0, so observe() reverts and no TWAP reference price exists." },
+      { "pair": "AaveWETH/AaveUSDC", "fee": 3000, "pool": "0x949c25abe36588eddd6dfa964667c2db266c43d5", "liquidity": "656778577162370", "observationCardinality": 0, "rejectedBecause": "observationCardinality is 0. Aave's own WETH also has no Uniswap depth." }
+    ]
+  },
+  "aave": {
+    "packageUsedForAddresses": "@bgd-labs/aave-address-book@4.44.22",
+    "sepolia": {
+      "chainId": 11155111,
+      "POOL": "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951",
+      "POOL_ADDRESSES_PROVIDER": "0x012bAC54348C0E635dCAc9D5FB99f06F24136C9A",
+      "AAVE_PROTOCOL_DATA_PROVIDER": "0x3e9708d80f7B3e43118013075F7e95CE3AB31F31",
+      "ORACLE": "0x2da88497588bf89281816106C7259e31AF45a663",
+      "FAUCET": "0xC959483DBa39aa9E78757139af0e9a2EDEb3f42D"
+    },
+    "launchReserve": {
+      "symbol": "USDC",
+      "underlying": "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8",
+      "aToken": "0x16dA4541aD1807f4443d92D26044C1147406EB80",
+      "decimals": 6,
+      "verifiedBy": "Pool.getReserveData(0x94a9...) returned aTokenAddress 0x16dA4541..."
+    },
+    "notReserves": [
+      { "token": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14", "symbol": "WETH9 (Uniswap)", "evidence": "Pool.getReserveData returned aTokenAddress 0x0. Aave's WETH on Sepolia is 0xC558DBdd856501FCd9aaF1E62eae57A9F0629a3c and has no Uniswap V3 TWAP." }
+    ]
+  },
+  "toolchain": {
+    "node": "24.14.1",
+    "pnpm": "10.33.0",
+    "solc": "0.8.36",
+    "solcReason": "@iexec-nox/nox-protocol-contracts@0.2.4 declares pragma ^0.8.35 on every source. 0.8.36 is the highest release that satisfies it and that the Nox Hardhat plugin's toolchain resolves.",
+    "evmVersion": "osaka",
+    "evmVersionReason": "Ethereum Sepolia is on the Osaka fork, so one artifact deploys locally and on Sepolia. The local Nox node must therefore be configured chainType l1 / hardfork osaka; the plugin's default is an OP chain at Isthmus where CLZ (EIP-7939) is an INVALID opcode.",
+    "hardhat": "3.11.1",
+    "foundry": "1.7.1"
+  },
+  "hardLimitsThatShapeTheDesign": [
+    "EIP-170: 24,576 bytes of runtime code. The local Nox node allows unlimited contract size and CANNOT be made not to, because NoxCompute itself exceeds the limit. A size check outside the node is the only thing that catches this before a deployment does.",
+    "EIP-7825 (Osaka): a single transaction may not exceed 2^24 = 16,777,216 gas. Every Nox primitive is a separate external call with no batch entry point, so the clearing operation graph must be split across transactions and sized against this cap.",
+    "Nox input proofs carry no nonce and no consumption marker. validateInputProof checks chain id, TEE type, the 137-byte proof length, createdAt + proofExpirationDuration, app == msg.sender, owner, and the gateway signature — and nothing else. Replay protection is the application's job.",
+    "Nox decryption proofs are a pure EIP-712 signature check: no ACL, no nonce, no expiry, no caller binding. A valid proof says a value was decrypted, never which epoch it belongs to.",
+    "Nox handles are deterministic in their operands. Two logically distinct quantities computed identically are ONE handle with ONE permanent ACL entry.",
+    "The handle gateway returns plaintext at its natural width, not ABI-padded."
+  ]
+}
