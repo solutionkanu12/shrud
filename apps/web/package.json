@@ -1,0 +1,33 @@
+{
+  "name": "@shrud/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rainbow-me/rainbowkit": "2.2.11",
+    "@shrud/clearing-math": "workspace:*",
+    "@shrud/shared": "workspace:*",
+    "@tanstack/react-query": "5.101.4",
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "viem": "2.55.10",
+    "wagmi": "2.19.5",
+    "@shrud/contracts-generated": "workspace:*",
+    "@shrud/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.8",
+    "@types/react-dom": "19.2.4",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3"
+  }
+}
