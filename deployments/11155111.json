@@ -1,0 +1,211 @@
+{
+  "$comment": "Rebuilt by scripts/deploy/rebuild-manifest.ts. Every address was derived from the deployer's nonce and confirmed to hold code; every hash was computed from what eth_getCode returned; the wiring and the governance delay were read from the contracts' own accessors.",
+  "chainId": 11155111,
+  "deployedAt": "2026-08-01T16:41:47.316Z",
+  "deployer": "0x364d832497792553BEE55c531344510B8Ca52657",
+  "compiler": {
+    "version": "0.8.36",
+    "optimizer": true,
+    "runs": 200,
+    "viaIR": true,
+    "evmVersion": "osaka"
+  },
+  "compilerOverrides": {
+    "contracts/clearing/ShrudClearingEngine.sol": {
+      "runs": 1
+    },
+    "contracts/settlement/ShrudSettlementEngine.sol": {
+      "runs": 1
+    }
+  },
+  "governance": {
+    "governor": "0x364d832497792553BEE55c531344510B8Ca52657",
+    "guardian": "0x364d832497792553BEE55c531344510B8Ca52657",
+    "delaySeconds": 600,
+    "note": "Read from ShrudAssetRegistry.registrationDelay(), not from the deploy script's constant. Chain id 1 enforces a seven-day minimum on chain regardless of this value."
+  },
+  "external": {
+    "usdc": "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8",
+    "weth": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+    "aUsdc": "0x16dA4541aD1807f4443d92D26044C1147406EB80",
+    "uniswapPool": "0xbA57Efa18073647E5269DB04Ff70B8e26Fd0BEaF",
+    "swapRouter02": "0x3bFA4769FB09eefC5a80d6E87c3B9C650f7Ae48E",
+    "aavePool": "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951"
+  },
+  "route": {
+    "routeId": "0x5fb1efac750c63898b63bd66112f242e084583a49fd7f93ae270cb9d0ad497e5",
+    "pool": "0xbA57Efa18073647E5269DB04Ff70B8e26Fd0BEaF",
+    "baseToken": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+    "quoteToken": "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8",
+    "twapWindow": 1800,
+    "minObservationHistory": 1800,
+    "maxStaleness": 3600,
+    "maxTickDeviation": 1000,
+    "enabled": false
+  },
+  "registrationIds": {
+    "usdc": "0x3be44b0c80a38d60cc43728e7a051a90678d2f2aabbafdf461ddabfd17ad6b16",
+    "weth": "0x74aa3a715346a1110d8a19776d72de144903eba9009ff241c403ad652005f235"
+  },
+  "contracts": {
+    "ShrudPauseController": {
+      "address": "0x443bE40Cd6c35e9822dE669E4bFc3916B290783A",
+      "runtimeCodeHash": "0xfe0cc83272e5096eee559965ebfb0d289eb238673621077d733d441482a88873",
+      "constructorArgs": [
+        "0x364d832497792553BEE55c531344510B8Ca52657"
+      ]
+    },
+    "ShrudAssetRegistry": {
+      "address": "0x6dD5cBeEc25D01b6154F11160B4c4bc215c24f77",
+      "runtimeCodeHash": "0x559e76f6188962bbe6e4cc2663d0ce5e6e56d55efa933d3b348190b0ac0abf4e",
+      "constructorArgs": [
+        "0x364d832497792553BEE55c531344510B8Ca52657",
+        "600"
+      ]
+    },
+    "ShrudAdapterRegistry": {
+      "address": "0x25aE7c66E70aA9Ec949c06Cea1AcF619E3F42d5c",
+      "runtimeCodeHash": "0xdbd08b01aec6c599af934fd6c08bb66ebca45446b7f57b646fefe81f3e74f013",
+      "constructorArgs": [
+        "0x364d832497792553BEE55c531344510B8Ca52657",
+        "600"
+      ]
+    },
+    "ShrudReferencePriceRegistry": {
+      "address": "0x4A3e1D2caB8aEC323199A88E62124eCcfe8220D5",
+      "runtimeCodeHash": "0x011ca8e15476d5bc565e16e85ce89d02dbbe3aae3ae4a7f16e2ec824be74d8fa",
+      "constructorArgs": [
+        "0x364d832497792553BEE55c531344510B8Ca52657",
+        "600"
+      ]
+    },
+    "ShrudIntentBook": {
+      "address": "0x37Cdd2c5Ef8609b2e2AD4f189Ca380b57e74844C",
+      "runtimeCodeHash": "0xb0401215e567f3a4792194d5f4cbfe75edaf88023cde16a25b9c683eb673152c",
+      "constructorArgs": [
+        "0x364d832497792553BEE55c531344510B8Ca52657"
+      ]
+    },
+    "ShrudPositionLedger": {
+      "address": "0xaF04c76382ae4a06f5c7896aC9610313E9e67Ba6",
+      "runtimeCodeHash": "0xe2a83de22d25978517ffc292e2212e9800a48e3b86e2ef93f37075ddfc55b892",
+      "constructorArgs": [
+        "0x443bE40Cd6c35e9822dE669E4bFc3916B290783A"
+      ]
+    },
+    "ShrudClearingVault": {
+      "address": "0x6256EF3aB639980Bc4B4BCDC300D718893A2B428",
+      "runtimeCodeHash": "0xb55aa67d942ac91c36ed68eff1141a3e9bc54e24e7f16417865adb6d2d66ff49",
+      "constructorArgs": [
+        "0x6dD5cBeEc25D01b6154F11160B4c4bc215c24f77",
+        "0x37Cdd2c5Ef8609b2e2AD4f189Ca380b57e74844C",
+        "0x443bE40Cd6c35e9822dE669E4bFc3916B290783A"
+      ]
+    },
+    "ShrudCapsuleFactory": {
+      "address": "0x23769E39edcB4C1805e9cEd870E64d706eb4636D",
+      "runtimeCodeHash": "0x4da9e919e2cfdf4185a997fde9d393af86d595168ca13248b0acab97c430760c",
+      "constructorArgs": [
+        "0x441Aa3b8A93988EC4acE69141356272e8aC41de2",
+        "0x443bE40Cd6c35e9822dE669E4bFc3916B290783A"
+      ]
+    },
+    "ShrudClearingEngine": {
+      "address": "0xeDE0d7aC7bd571a54a446C38a6d2EBcA196983eB",
+      "runtimeCodeHash": "0xe465379b7561781a18aa5c952dd3445860c6820324036f43b453952f7bab8864",
+      "constructorArgs": [
+        "0x37Cdd2c5Ef8609b2e2AD4f189Ca380b57e74844C",
+        "0x6256EF3aB639980Bc4B4BCDC300D718893A2B428",
+        "0x4A3e1D2caB8aEC323199A88E62124eCcfe8220D5",
+        "0x263e6a2452A5DF2Acf6fEcB26bCa7F1c60831699",
+        "0x443bE40Cd6c35e9822dE669E4bFc3916B290783A"
+      ]
+    },
+    "ShrudSettlementEngine": {
+      "address": "0x263e6a2452A5DF2Acf6fEcB26bCa7F1c60831699",
+      "runtimeCodeHash": "0xd4a50e5c0e236414284db8a8b67f7d2f6bce79cccb568da421c35faf45c0a9a2",
+      "constructorArgs": [
+        "0x37Cdd2c5Ef8609b2e2AD4f189Ca380b57e74844C",
+        "0xeDE0d7aC7bd571a54a446C38a6d2EBcA196983eB",
+        "0x6256EF3aB639980Bc4B4BCDC300D718893A2B428",
+        "0x25aE7c66E70aA9Ec949c06Cea1AcF619E3F42d5c",
+        "0x4A3e1D2caB8aEC323199A88E62124eCcfe8220D5",
+        "0xaF04c76382ae4a06f5c7896aC9610313E9e67Ba6",
+        "0x443bE40Cd6c35e9822dE669E4bFc3916B290783A"
+      ]
+    },
+    "ShrudModuleFactory": {
+      "address": "0x441Aa3b8A93988EC4acE69141356272e8aC41de2",
+      "runtimeCodeHash": "0x27de5de030e3e01ec31c3954d3306b235eef575c730a4306f4fcc316607ff67e",
+      "constructorArgs": [
+        "0x37Cdd2c5Ef8609b2e2AD4f189Ca380b57e74844C",
+        "0x6dD5cBeEc25D01b6154F11160B4c4bc215c24f77",
+        "0x6256EF3aB639980Bc4B4BCDC300D718893A2B428",
+        "0xeDE0d7aC7bd571a54a446C38a6d2EBcA196983eB",
+        "0x23769E39edcB4C1805e9cEd870E64d706eb4636D",
+        "0x443bE40Cd6c35e9822dE669E4bFc3916B290783A"
+      ]
+    },
+    "ShrudEmergencyExit": {
+      "address": "0xa2d80a5F0B8846A138c194F926EE68Bcb4532e02",
+      "runtimeCodeHash": "0x3c5e71ecedc0713da349742dcf27c81f57352066e16798640175549e09a0e518",
+      "constructorArgs": [
+        "0x6256EF3aB639980Bc4B4BCDC300D718893A2B428",
+        "0x37Cdd2c5Ef8609b2e2AD4f189Ca380b57e74844C",
+        "0x443bE40Cd6c35e9822dE669E4bFc3916B290783A",
+        "0x263e6a2452A5DF2Acf6fEcB26bCa7F1c60831699"
+      ]
+    },
+    "ShrudWrappedUSDC": {
+      "address": "0x1BD1Bc3222e315fe10292aa6F1d83790FD7832Ba",
+      "runtimeCodeHash": "0xf84bbfa1352d84fce7bf7ac4154d0004fed529652c64caad2f7f9d059c53f2a9",
+      "constructorArgs": [
+        "shrud confidential USDC",
+        "cUSDC",
+        "",
+        "0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8",
+        "1000000000000000"
+      ]
+    },
+    "ShrudWrappedWETH": {
+      "address": "0x0394dBcA816F9f8fDe9cFA9FcFbD8E50DDA37B3b",
+      "runtimeCodeHash": "0x03013ae927f9d6594758ca4e20d3978a39a49edecf5c593617cb4c78d9228a41",
+      "constructorArgs": [
+        "shrud confidential WETH",
+        "cWETH",
+        "",
+        "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+        "1000000000000000000000000"
+      ]
+    }
+  },
+  "seeded": false,
+  "seededNote": "No Safes, orders, balances or epochs were created. The hackathon brief requires the project to work end to end without mock data, and a deploy script that plants demo state is how a repository ends up verifying against numbers it wrote itself.",
+  "adapters": {
+    "UniswapBuyBaseAdapter": {
+      "address": "0xa7563df709d3dc7af5718f98f14cff1e77de85da",
+      "runtimeCodeHash": "0x5c28da984dce4b5ba4a6a7f408de310f919bcb739f79f901950aff33d0dfcf3e",
+      "constructorArgs": [],
+      "routeId": "0xcf588db9b6f5a6ab4cd1b8d02d76baca29f33c86cae91081a1e49ea64f3a4bd4"
+    },
+    "UniswapSellBaseAdapter": {
+      "address": "0xcfd16fbd76f1f5017e5d9ec5058d4537cc17bdda",
+      "runtimeCodeHash": "0x729a15f497b2f0c712e27811c9f89d6ce5e80c4145b91b6e0fc6a35dda2e716c",
+      "constructorArgs": [],
+      "routeId": "0xf74d855423fbc2c81e98746d763a0fc12f7810948ec7464e7365e2c9570c0f13"
+    },
+    "AaveSupplyAdapter": {
+      "address": "0xfd33fa985c9f93204c832caceaee320fe70c7dd0",
+      "runtimeCodeHash": "0x81519b1f06e480d7ae35786a9e03d0cf85f80479aad90fbb4d791e724bd23163",
+      "constructorArgs": [],
+      "routeId": "0x9c322c7be866d8435e386aaa64314c32cd7b08334ea4b6fac501654c30e7a54b"
+    }
+  },
+  "positionId": "0x09c7518df7ea553ac78006675f47a677c45a0cc858d04bc8b465918c7f543942",
+  "adapterRoutes": {
+    "buy": "0xcf588db9b6f5a6ab4cd1b8d02d76baca29f33c86cae91081a1e49ea64f3a4bd4",
+    "sell": "0xf74d855423fbc2c81e98746d763a0fc12f7810948ec7464e7365e2c9570c0f13",
+    "supply": "0x9c322c7be866d8435e386aaa64314c32cd7b08334ea4b6fac501654c30e7a54b"
+  },
+  "deploymentBlock": 11397590
+}
