@@ -19,3 +19,6 @@ coverage/
 .next/
 .DS_Store
 broadcast/*/dry-run/
+
+# Written by the Nox hardhat plugin when the offchain stack starts.
+offchain-services.log

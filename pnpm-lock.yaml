@@ -57,6 +57,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@iexec-nox/handle':
+        specifier: 0.1.0-beta.13
+        version: 0.1.0-beta.13(ethers@6.17.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(graphql@16.14.2)(viem@2.55.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3))
       '@rainbow-me/rainbowkit':
         specifier: 2.2.11
         version: 2.2.11(@tanstack/react-query@5.101.4(react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@5.9.3)(viem@2.55.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3))(wagmi@2.19.5(@tanstack/query-core@5.101.4)(@tanstack/react-query@5.101.4(react@19.2.8))(@types/react@19.2.8)(bufferutil@4.1.0)(immer@11.1.15)(react@19.2.8)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.55.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3))(zod@4.4.3))
@@ -66,6 +69,9 @@ importers:
       '@shrud/contracts-generated':
         specifier: workspace:*
         version: link:../../packages/contracts-generated
+      '@shrud/nox-client':
+        specifier: workspace:*
+        version: link:../../packages/nox-client
       '@shrud/safe-client':
         specifier: workspace:*
         version: link:../../packages/safe-client
@@ -4165,6 +4171,15 @@ snapshots:
     optionalDependencies:
       ethers: 6.17.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
       viem: 2.55.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
+    transitivePeerDependencies:
+      - graphql
+
+  '@iexec-nox/handle@0.1.0-beta.13(ethers@6.17.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(graphql@16.14.2)(viem@2.55.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3))':
+    dependencies:
+      graphql-request: 7.4.0(graphql@16.14.2)
+    optionalDependencies:
+      ethers: 6.17.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+      viem: 2.55.10(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.4.3)
     transitivePeerDependencies:
       - graphql
 
