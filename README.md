@@ -81,11 +81,11 @@ balances, no fabricated epochs.
 
 | Contract | Address |
 |---|---|
-| ShrudIntentBook | [`0x37Cdd2c5Ef8609b2e2AD4f189Ca380b57e74844C`](https://sepolia.etherscan.io/address/0x37Cdd2c5Ef8609b2e2AD4f189Ca380b57e74844C) |
-| ShrudClearingEngine | [`0xeDE0d7aC7bd571a54a446C38a6d2EBcA196983eB`](https://sepolia.etherscan.io/address/0xeDE0d7aC7bd571a54a446C38a6d2EBcA196983eB) |
-| ShrudSettlementEngine | [`0x263e6a2452A5DF2Acf6fEcB26bCa7F1c60831699`](https://sepolia.etherscan.io/address/0x263e6a2452A5DF2Acf6fEcB26bCa7F1c60831699) |
-| ShrudModuleFactory | [`0x441Aa3b8A93988EC4acE69141356272e8aC41de2`](https://sepolia.etherscan.io/address/0x441Aa3b8A93988EC4acE69141356272e8aC41de2) |
-| ShrudClearingVault | [`0x6256EF3aB639980Bc4B4BCDC300D718893A2B428`](https://sepolia.etherscan.io/address/0x6256EF3aB639980Bc4B4BCDC300D718893A2B428) |
+| ShrudIntentBook | [`0x45525d5625a3c0cbd79162035bca4a62d1855fc2`](https://sepolia.etherscan.io/address/0x45525d5625a3c0cbd79162035bca4a62d1855fc2) |
+| ShrudClearingEngine | [`0xcf30be6884105a27e54a342acd3e53dabdbc8e7c`](https://sepolia.etherscan.io/address/0xcf30be6884105a27e54a342acd3e53dabdbc8e7c) |
+| ShrudSettlementEngine | [`0x8b34e00c984c4e6d96e06c271ccbada1cd2af0f6`](https://sepolia.etherscan.io/address/0x8b34e00c984c4e6d96e06c271ccbada1cd2af0f6) |
+| ShrudModuleFactory | [`0xc138c4915789c4bec8235cfdac08b134d1edc2e3`](https://sepolia.etherscan.io/address/0xc138c4915789c4bec8235cfdac08b134d1edc2e3) |
+| ShrudClearingVault | [`0xc231484dd1aa149661e1913689ad443d21d79f9f`](https://sepolia.etherscan.io/address/0xc231484dd1aa149661e1913689ad443d21d79f9f) |
 
 **All 17 have verified source on Etherscan.** Full set with runtime code hashes and constructor
 arguments in [`deployments/11155111.json`](deployments/11155111.json).

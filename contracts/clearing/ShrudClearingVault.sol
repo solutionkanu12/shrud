@@ -203,7 +203,11 @@ contract ShrudClearingVault is ShrudHandleIsolation, IShrudClearingVault, IERC79
     }
 
     /// @inheritdoc IShrudClearingVault
-    function confirmLock(bytes32 intentId, euint256 lockedAmount, ebool lockSuccess) external override {
+    function confirmLock(
+        bytes32 intentId,
+        euint256 lockedAmount,
+        ebool /* lockSuccess — deliberately unused, see below */
+    ) external override {
         EscrowRecord storage record = _escrow[intentId];
         if (msg.sender != record.module) revert NotTheOwningModule(msg.sender, record.module);
         if (!_pendingCredit[intentId]) revert NoPendingCredit(intentId);
@@ -218,7 +222,19 @@ contract ShrudClearingVault is ShrudHandleIsolation, IShrudClearingVault, IERC79
         // no callback that could re-grant mid-flight.
         Nox.allowThis(lockedAmount);
         Nox.allow(lockedAmount, clearingEngine);
-        Nox.allowThis(lockSuccess);
+
+        // `lockSuccess` IS DELIBERATELY NOT GRANTED HERE.
+        //
+        // Granting requires the caller to already hold the handle: NoxCompute's `allow` is behind
+        // `onlyAllowed`, so `Nox.allowThis` from an address with no grant reverts
+        // `UnauthorizedSender(address)`. `ShrudSafeModule._lock` grants this vault `lockedAmount`
+        // and grants `lockSuccess` only to the engine, so the previous `Nox.allowThis(lockSuccess)`
+        // reverted every activation on a real Nox deployment — no order could ever be locked and no
+        // epoch could ever clear.
+        //
+        // The grant was also pointless. Nothing in this contract reads `lockSuccess`: the engine
+        // takes it from `ShrudIntentBook.recordLock`, not from the vault. The parameter stays so the
+        // interface still records what the module computed.
 
         emit LockConfirmed(intentId, record.epochId);
     }

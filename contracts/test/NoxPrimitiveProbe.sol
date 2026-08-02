@@ -138,4 +138,20 @@ contract NoxPrimitiveProbe {
         Nox.allowThis(imported);
         importCount += 1;
     }
+
+    /**
+     * @notice D-7. Grants THIS contract access to a handle it was never granted.
+     *
+     * @dev The shape of a real bug. `ShrudClearingVault.confirmLock` called `Nox.allowThis` on the
+     *      `lockSuccess` handle, which `ShrudSafeModule._lock` grants only to the clearing engine.
+     *      Granting is itself an ACL-guarded operation — NoxCompute's `allow` sits behind
+     *      `onlyAllowed` — so the call reverted `UnauthorizedSender` and every activation on a real
+     *      deployment failed. No unit test could catch it, because no mock enforces the ACL.
+     *
+     *      This function exists so the constraint is asserted against the real stack instead of
+     *      being remembered.
+     */
+    function grantSelfWithoutPermission(bytes32 foreignHandle) external {
+        Nox.allowThis(euint256.wrap(foreignHandle));
+    }
 }

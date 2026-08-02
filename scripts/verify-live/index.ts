@@ -158,9 +158,14 @@ async function verifyWiring(
     "the deploying account cannot forge intents",
   );
 
+  // Case-insensitive, like every other address comparison in this file. An RPC returns checksummed
+  // addresses while the deploy script writes lowercase into the manifest, so a strict `===` here
+  // reported correct wiring as a failure on any freshly deployed set — the one comparison in this
+  // file that was not normalised.
   check(
     "only the module factory may authorise modules",
-    (await read(address("ShrudIntentBook"), bookAbi, "moduleFactory")) === address("ShrudModuleFactory"),
+    String(await read(address("ShrudIntentBook"), bookAbi, "moduleFactory")).toLowerCase() ===
+      address("ShrudModuleFactory").toLowerCase(),
   );
 }
 
