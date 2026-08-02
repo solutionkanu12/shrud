@@ -17,8 +17,56 @@ import { useQuery } from "@tanstack/react-query";
 import { type Address, encodeFunctionData, type Hex, isAddress, zeroAddress } from "viem";
 import { usePublicClient } from "wagmi";
 
-import { CHAIN_ID, contractAddress } from "./deployment";
+import safeModuleArtifact from "../../../../artifacts/contracts/accounts/ShrudSafeModule.sol/ShrudSafeModule.json";
+import { CHAIN_ID, contractAddress, EXTERNAL } from "./deployment";
 import { moduleFactoryAbi } from "./hooks";
+
+export const safeModuleAbi = safeModuleArtifact.abi;
+
+/**
+ * The two underlyings this deployment can wrap.
+ *
+ * Taken from the manifest rather than typed here, so the app cannot drift from the addresses the
+ * registry actually enables.
+ */
+function externalAddress(name: string): Address {
+  const found = EXTERNAL[name];
+  if (found === undefined) {
+    throw new Error(`${name} is not in the deployment manifest. This build cannot wrap it.`);
+  }
+  return found;
+}
+
+export const WRAPPABLE = [
+  { symbol: "USDC", address: externalAddress("usdc"), decimals: 6 },
+  { symbol: "WETH", address: externalAddress("weth"), decimals: 18 },
+] as const;
+
+/**
+ * The struct `ShrudSafeModule.shield` verifies before it moves anything — module line 506.
+ *
+ * `safeNonce` binds the authorisation to the Safe's current nonce, so a signature collected for one
+ * state cannot be replayed after the Safe has done something else.
+ */
+export const SHIELD_TYPES = {
+  ShrudShield: [
+    { name: "safe", type: "address" },
+    { name: "underlying", type: "address" },
+    { name: "amount", type: "uint256" },
+    { name: "operatorUntil", type: "uint48" },
+    { name: "safeNonce", type: "uint256" },
+  ],
+} as const;
+
+/** Mirrors `ShrudSafeModule.domainSeparator`: name "shrud", version "1", verified by the module. */
+export function shieldDomain(module: Address) {
+  return {
+    name: "shrud",
+    version: "1",
+    chainId: CHAIN_ID,
+    verifyingContract: module,
+  } as const;
+}
 
 /** Only the four Safe entry points this flow calls. */
 export const SAFE_WRITE_ABI = [

@@ -1,20 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { type Address, isAddress } from "viem";
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { type Address, formatUnits, isAddress, parseUnits } from "viem";
+import {
+  useAccount,
+  useReadContract,
+  useSignTypedData,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 
 import { PageHeader, RequiresConnection } from "@/components/app-shell";
 import { AddressLink, Card, Pill, RainbowMark } from "@/components/primitives";
-import { contractAddress, explorerUrl } from "@/lib/deployment";
+import { CHAIN_ID, contractAddress, explorerUrl } from "@/lib/deployment";
 import { moduleFactoryAbi } from "@/lib/hooks";
 import {
   canSelfAuthorise,
   enableModuleCall,
+  safeModuleAbi,
   safeSelfCall,
   setModuleGuardCall,
+  SHIELD_TYPES,
+  shieldDomain,
   useSafeStatus,
+  WRAPPABLE,
 } from "@/lib/onboarding";
+
+/** Only the one ERC-20 getter this page needs, to keep a full ABI out of the bundle. */
+const ERC20_BALANCE_ABI = [
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+] as const;
 
 const REASONING = {
   connect:
@@ -221,16 +242,23 @@ export default function OnboardPage() {
             </Step>
 
             {/* ── 3 and 4 ───────────────────────────────────────────────────────── */}
-            <Step index={2} title="Set your order policy" reasoning={REASONING.policy}>
+            <Step index={2} title="Your order policy" reasoning={REASONING.policy}>
               <p className="mt-1 text-body text-stone">
-                Choose which pairs this treasury may trade and which owners may authorise an order.
-                Policy is public. What it governs is not.
+                Nothing to configure. This deployment recognises exactly one order family, and the
+                module refuses every other one.
               </p>
-              <p className="mt-4 text-caption text-stone">
-                {status.data?.fullyInstalled === true
-                  ? "Available once policy configuration ships."
-                  : "Locked until the module is installed."}
-              </p>
+              <div className="mt-4 rounded-[20px] bg-cloud p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Pill tone="public">USDC_WETH_ALLOCATION_V1</Pill>
+                  <Pill tone="neutral">fixed at deployment</Pill>
+                </div>
+                <p className="mt-3 text-caption text-stone">
+                  The family is a compile-time constant in ShrudOrderFamily, and there is no setter
+                  anywhere in the contracts. An order naming any other family reverts with
+                  UnknownOrderFamily. Presenting a policy editor here would imply a choice the chain
+                  does not offer.
+                </p>
+              </div>
             </Step>
 
             <Step index={3} title="Wrap what you want to trade" reasoning={REASONING.wrap}>
@@ -238,11 +266,22 @@ export default function OnboardPage() {
                 Deposit USDC or WETH into their confidential wrappers. From that moment the balance
                 is a Nox handle rather than a number.
               </p>
-              <p className="mt-4 text-caption text-stone">
-                {status.data?.fullyInstalled === true
-                  ? "Available once wrapping ships."
-                  : "Locked until the module is installed."}
-              </p>
+
+              {status.data?.fullyInstalled === true ? (
+                <WrapPanel
+                  safe={safe as Address}
+                  module={status.data.deployedModule}
+                  safeNonce={scan?.nonce ?? 0n}
+                  canSign={selfAuthorise}
+                  onDone={() => {
+                    void status.refetch();
+                  }}
+                />
+              ) : (
+                <p className="mt-4 text-caption text-stone">
+                  Locked until the module is installed, enabled and guarded.
+                </p>
+              )}
             </Step>
           </div>
 
@@ -367,6 +406,177 @@ function Action({
         >
           Sign
         </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Wrapping, through the module's `shield` rather than the wrapper directly.
+ *
+ * `shield` verifies an EIP-712 authorisation and then makes the SAFE approve, wrap and set the
+ * operator in one transaction. Calling the wrapper directly would wrap to whoever sent the
+ * transaction, which is the connected wallet and not the treasury.
+ */
+function WrapPanel({
+  safe,
+  module,
+  safeNonce,
+  canSign,
+  onDone,
+}: {
+  safe: Address;
+  module: Address;
+  safeNonce: bigint;
+  canSign: boolean;
+  onDone: () => void;
+}) {
+  const [token, setToken] = useState<(typeof WRAPPABLE)[number]>(WRAPPABLE[0]);
+  const [amount, setAmount] = useState("");
+  const [failure, setFailure] = useState<string | undefined>();
+
+  const { signTypedDataAsync, isPending: signing } = useSignTypedData();
+  const { data: hash, writeContractAsync, isPending: sending } = useWriteContract();
+  const receipt = useWaitForTransactionReceipt({ hash });
+
+  const balance = useReadContract({
+    address: token.address,
+    abi: ERC20_BALANCE_ABI,
+    functionName: "balanceOf",
+    args: [safe],
+    chainId: CHAIN_ID,
+  });
+
+  useEffect(() => {
+    if (receipt.isSuccess) {
+      onDone();
+      void balance.refetch();
+    }
+  }, [receipt.isSuccess, onDone, balance.refetch]);
+
+  const held = balance.data as bigint | undefined;
+  let units: bigint | undefined;
+  try {
+    units = amount === "" ? undefined : parseUnits(amount, token.decimals);
+  } catch {
+    units = undefined;
+  }
+  const overBalance = units !== undefined && held !== undefined && units > held;
+  const busy = signing || sending || receipt.isLoading;
+
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      <div className="flex flex-wrap gap-2">
+        {WRAPPABLE.map((option) => (
+          <button
+            key={option.symbol}
+            type="button"
+            onClick={() => {
+              setToken(option);
+              setAmount("");
+            }}
+            aria-pressed={token.symbol === option.symbol}
+            className={`rounded-[40px] px-4 py-2.5 text-body font-bold transition-colors ${
+              token.symbol === option.symbol
+                ? "bg-ink text-white"
+                : "bg-cloud text-ink hover:bg-mist/40"
+            }`}
+          >
+            {option.symbol}
+          </button>
+        ))}
+      </div>
+
+      <p className="text-caption text-stone">
+        Safe holds{" "}
+        {held === undefined ? "…" : `${formatUnits(held, token.decimals)} ${token.symbol}`}. This is
+        the plaintext balance, and it is public.
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        <input
+          value={amount}
+          onChange={(event) => {
+            setAmount(event.target.value.trim());
+            setFailure(undefined);
+          }}
+          inputMode="decimal"
+          placeholder={`Amount in ${token.symbol}`}
+          className="min-w-0 flex-1 rounded-[20px] bg-cloud px-4 py-3 font-mono text-caption outline-none focus:ring-2 focus:ring-[#5c3fa8]"
+        />
+        <button
+          type="button"
+          className="btn btn-tangerine text-[0.9rem]"
+          disabled={busy || !canSign || units === undefined || units === 0n || overBalance}
+          onClick={() => {
+            void (async () => {
+              setFailure(undefined);
+              try {
+                if (units === undefined) return;
+                // Thirty days. The operator grant is what lets the module move the wrapped balance
+                // into a clearing epoch later; without it, wrapping produces a balance nothing can use.
+                // uint48, which viem represents as a number rather than a bigint.
+                const operatorUntil = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+
+                const signature = await signTypedDataAsync({
+                  domain: shieldDomain(module),
+                  types: SHIELD_TYPES,
+                  primaryType: "ShrudShield",
+                  message: {
+                    safe,
+                    underlying: token.address,
+                    amount: units,
+                    operatorUntil,
+                    safeNonce,
+                  },
+                });
+
+                await writeContractAsync({
+                  address: module,
+                  abi: safeModuleAbi,
+                  functionName: "shield",
+                  args: [token.address, units, operatorUntil, signature],
+                });
+              } catch (caught) {
+                setFailure(
+                  caught instanceof Error ? caught.message.split("\n")[0] : "The wrap failed.",
+                );
+              }
+            })();
+          }}
+        >
+          {signing ? "Sign in wallet…" : busy ? "Wrapping…" : "Sign and wrap"}
+        </button>
+      </div>
+
+      {overBalance && (
+        <p className="text-caption text-[#9c5500]">
+          The Safe does not hold that much {token.symbol}. Fund it from the Aave faucet first.
+        </p>
+      )}
+
+      {!canSign && (
+        <p className="text-caption text-[#9c5500]">
+          Wrapping needs an owner signature this page cannot collect for a multi-signature Safe.
+        </p>
+      )}
+
+      {hash !== undefined && (
+        <p className="text-caption text-stone">
+          {receipt.isLoading ? "Waiting for confirmation… " : "Wrapped. The balance is a handle now. "}
+          <a
+            href={explorerUrl(hash, "tx")}
+            target="_blank"
+            rel="noreferrer"
+            className="font-bold text-[#5c3fa8] underline-offset-4 hover:underline"
+          >
+            View on Etherscan
+          </a>
+        </p>
+      )}
+
+      {failure !== undefined && (
+        <p className="rounded-[20px] bg-[#fff0e0] p-4 text-caption text-[#9c5500]">{failure}</p>
       )}
     </div>
   );
