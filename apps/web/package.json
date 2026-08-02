@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "pnpm --filter @shrud/safe-client... build && next dev",
+    "build": "pnpm --filter @shrud/safe-client... build && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
   },
