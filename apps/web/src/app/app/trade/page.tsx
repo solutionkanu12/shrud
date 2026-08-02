@@ -117,8 +117,20 @@ function OrderForm({ safe, module }: { safe: Address; module: Address }) {
             submission.run({ side, amount, limit });
           }}
         >
-          {submission.busy ? submission.stage : ready ? "Encrypt and submit" : "Enter an amount and a limit"}
+          {submission.busy
+            ? submission.stage
+            : submission.done
+              ? "Submit another order"
+              : ready
+                ? "Encrypt and submit"
+                : "Enter an amount and a limit"}
         </button>
+
+        {submission.done && (
+          <p className="mt-4 rounded-[20px] bg-[#e0f5e9] p-4 text-body font-bold text-[#1f6640]">
+            Order submitted, activated and funded. It is live in the epoch below.
+          </p>
+        )}
 
         {submission.steps.length > 0 && (
           <ol className="mt-4 flex flex-col gap-2">

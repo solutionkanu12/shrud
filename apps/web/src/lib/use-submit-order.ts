@@ -57,6 +57,9 @@ export function useSubmitOrder({ safe, module }: { safe: Address; module: Addres
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [busy, setBusy] = useState(false);
+  // A finished run must LOOK finished. Resetting the button to its idle label after four successful
+  // transactions reads as "nothing happened", which is the opposite of what occurred.
+  const [done, setDone] = useState(false);
   const [stage, setStage] = useState("Working…");
   const [error, setError] = useState<string | undefined>();
 
@@ -65,16 +68,17 @@ export function useSubmitOrder({ safe, module }: { safe: Address; module: Addres
       void (async () => {
         if (publicClient === undefined || walletClient === undefined) return;
         setBusy(true);
+        setDone(false);
         setError(undefined);
 
-        const done: Step[] = [];
+        const finished: Step[] = [];
         const push = (label: string, hash?: Hex) => {
-          done.push({ label, done: true, active: false, ...(hash === undefined ? {} : { hash }) });
-          setSteps([...done]);
+          finished.push({ label, done: true, active: false, ...(hash === undefined ? {} : { hash }) });
+          setSteps([...finished]);
         };
         const working = (label: string) => {
           setStage(label);
-          setSteps([...done, { label, done: false, active: true }]);
+          setSteps([...finished, { label, done: false, active: true }]);
         };
 
         try {
@@ -191,7 +195,8 @@ export function useSubmitOrder({ safe, module }: { safe: Address; module: Addres
           });
           await publicClient.waitForTransactionReceipt({ hash: activateHash });
           push("Order active and funds locked", activateHash);
-          setSteps([...done]);
+          setSteps([...finished]);
+          setDone(true);
         } catch (caught) {
           setError(explainWriteError(caught));
         } finally {
@@ -202,5 +207,5 @@ export function useSubmitOrder({ safe, module }: { safe: Address; module: Addres
     [publicClient, walletClient, signTypedDataAsync, safe, module],
   );
 
-  return { run, steps, busy, stage, error };
+  return { run, steps, busy, stage, error, done };
 }
