@@ -41,7 +41,7 @@
     "minObservationHistory": 1800,
     "maxStaleness": 3600,
     "maxTickDeviation": 1000,
-    "enabled": false
+    "enabled": true
   },
   "registrationIds": {
     "usdc": "0x3be44b0c80a38d60cc43728e7a051a90678d2f2aabbafdf461ddabfd17ad6b16",

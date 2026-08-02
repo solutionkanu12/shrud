@@ -18,10 +18,22 @@ import { type Address, encodeFunctionData, type Hex, isAddress, zeroAddress } fr
 import { usePublicClient } from "wagmi";
 
 import safeModuleArtifact from "../../../../artifacts/contracts/accounts/ShrudSafeModule.sol/ShrudSafeModule.json";
+import sourceLock from "../../../../source-lock.json";
 import { CHAIN_ID, contractAddress, EXTERNAL } from "./deployment";
 import { moduleFactoryAbi } from "./hooks";
 
 export const safeModuleAbi = safeModuleArtifact.abi;
+
+/**
+ * The 1.5.0 singleton, from source-lock rather than retyped.
+ *
+ * The onboarding copy has to name it, because the Safe interface still defaults to 1.4.1 on Sepolia
+ * and a user who follows "create one at app.safe.global" gets a Safe this protocol refuses.
+ */
+export const SAFE_1_5_0 = {
+  singleton: sourceLock.safe.sepolia.Safe as Address,
+  proxyFactory: sourceLock.safe.sepolia.SafeProxyFactory as Address,
+} as const;
 
 /**
  * The two underlyings this deployment can wrap.
@@ -197,6 +209,36 @@ export function useSafeStatus(safe: string) {
       };
     },
   });
+}
+
+/**
+ * What each named revert actually means, in the words the user needs.
+ *
+ * The factory reverts with custom errors that carry the diagnosis. Rendering "transaction failed"
+ * for ModuleAlreadyDeployed would send someone debugging a Safe that is already correct, and
+ * ModuleAlreadyDeployed is the single most likely error on a second visit to this page.
+ */
+const REVERT_MEANING: Record<string, string> = {
+  ModuleAlreadyDeployed:
+    "This Safe already has a shrud module. There is nothing to deploy — continue to enabling it.",
+  SafeIsNotAContract:
+    "There is no contract at that address on Sepolia. It is probably an EOA, or a Safe on another network.",
+  SafeVersionUnsupported:
+    "This Safe is not version 1.5.0. Module guards do not exist before 1.5.0, and 1.4.1 accepts the call to install one without installing anything.",
+  DeployedAddressMismatch:
+    "The module deployed to an address the factory did not predict. This deployment is inconsistent; do not continue.",
+  GS020: "The Safe rejected the signature. Its threshold is above one, or you are not an owner.",
+  GS026: "The Safe rejected the signature ordering. This is a bug in how the signature was packed.",
+};
+
+/** Pulls a named revert out of a viem error, falling back to its first line. */
+export function explainWriteError(error: unknown): string {
+  const text = error instanceof Error ? error.message : String(error);
+  for (const [name, meaning] of Object.entries(REVERT_MEANING)) {
+    if (text.includes(name)) return `${name} — ${meaning}`;
+  }
+  const firstLine = text.split("\n")[0];
+  return firstLine === undefined || firstLine === "" ? "The transaction failed." : firstLine;
 }
 
 /** Calldata for the Safe to call on itself, wrapped in `execTransaction`. */

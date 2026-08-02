@@ -2,17 +2,21 @@
 
 import { useState } from "react";
 
-import { Note, PageHeader, RequiresConnection, RequiresSafe } from "@/components/app-shell";
-import { Card, Pill } from "@/components/primitives";
-import { useConnection, useModuleOf } from "@/lib/hooks";
+import Link from "next/link";
+import { zeroAddress } from "viem";
+
+import { Note, PageHeader, RequiresConnection } from "@/components/app-shell";
+import { Card, Empty, Pill } from "@/components/primitives";
+import { useActiveSafe } from "@/lib/active-safe";
+import { useModuleOf } from "@/lib/hooks";
 
 type Side = "buy" | "sell";
 
 export default function TradePage() {
-  const { address } = useConnection();
-  const module = useModuleOf(address);
-  const hasModule =
-    module.data !== undefined && module.data !== "0x0000000000000000000000000000000000000000";
+  // Keyed by Safe, not by the connected wallet. See the note on `useModuleOf`.
+  const { safe } = useActiveSafe();
+  const module = useModuleOf(safe);
+  const hasModule = module.data !== undefined && module.data !== zeroAddress;
 
   return (
     <>
@@ -21,7 +25,23 @@ export default function TradePage() {
         description="Amount, side and limit are encrypted in your browser before anything is sent. The chain records that a Safe submitted an order for a pair, and nothing else."
         badge={<Pill tone="confidential">Confidential</Pill>}
       />
-      <RequiresConnection>{hasModule ? <OrderForm /> : <RequiresSafe />}</RequiresConnection>
+      <RequiresConnection>
+        {hasModule ? (
+          <OrderForm />
+        ) : (
+          <Empty
+            title={safe === undefined ? "No treasury selected" : "This Safe has no shrud module"}
+            action={
+              <Link href="/app/onboard" className="btn btn-tangerine">
+                {safe === undefined ? "Connect a Safe" : "Install the module"}
+              </Link>
+            }
+          >
+            An order is written by the Safe's module, so the module has to exist before there is
+            anything to submit.
+          </Empty>
+        )}
+      </RequiresConnection>
     </>
   );
 }
@@ -86,13 +106,21 @@ function OrderForm() {
           hint="Encrypted. Composed into the epoch's aggregate minimum without ever being revealed."
         />
 
-        <button type="button" className="btn btn-tangerine mt-6 w-full" disabled={!ready}>
-          {ready ? "Encrypt and submit" : "Enter an amount and a limit"}
+        <button
+          type="button"
+          className="btn btn-quiet mt-6 w-full"
+          disabled
+          title="Encryption runs against the Nox gateway and is not wired into this interface yet"
+        >
+          {ready ? "Submission is not wired up yet" : "Enter an amount and a limit"}
         </button>
 
-        <p className="mt-3 text-caption text-stone">
-          Submitting requires a Safe owner signature. Shrud Lens recomputes the commitment from the
-          plaintext before you sign, so the interface cannot show you one order and submit another.
+        <p className="mt-3 rounded-[20px] bg-[#fff0e0] p-4 text-caption text-[#9c5500]">
+          This form does not submit. Amount, side and limit have to be encrypted against the Nox
+          gateway before `submitIntent` can be called, and that path is not built in this interface
+          yet. The button is disabled rather than silently doing nothing, because an enabled action
+          that no-ops reads as a product that worked when it did not. Onboarding and wrapping on the
+          setup page are wired and do send real transactions.
         </p>
       </Card>
 

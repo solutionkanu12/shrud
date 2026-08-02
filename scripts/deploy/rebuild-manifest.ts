@@ -165,6 +165,26 @@ async function main(): Promise<void> {
       [BigInt(chainId), SEPOLIA.weth, SEPOLIA.usdc, SEPOLIA.uniswapPool],
     ),
   );
+  /**
+   * Read, not asserted.
+   *
+   * This was hardcoded `false` while the route was enabled on chain, so the manifest and the chain
+   * disagreed about the one field a reader would use to decide whether pricing works. Every other
+   * value in this file comes from a contract accessor; this one now does too.
+   */
+  const routeEnabled = (
+    (await publicClient.readContract({
+      address: need("ShrudReferencePriceRegistry"),
+      abi: artifact(
+        "clearing/ShrudReferencePriceRegistry.sol",
+        "ShrudReferencePriceRegistry",
+      ).abi,
+      functionName: "routeOf",
+      args: [routeId],
+    })) as { enabled: boolean }
+  ).enabled;
+  say(`  route enabled                ${routeEnabled} (read from the price registry)`);
+
   const registrationId = (underlying: Address, wrapper: Address): Hex =>
     keccak256(
       encodeAbiParameters(
@@ -204,7 +224,7 @@ async function main(): Promise<void> {
       minObservationHistory: TWAP_WINDOW,
       maxStaleness: MAX_STALENESS,
       maxTickDeviation: MAX_TICK_DEVIATION,
-      enabled: false,
+      enabled: routeEnabled,
     },
     registrationIds: {
       usdc: registrationId(SEPOLIA.usdc, need("ShrudWrappedUSDC")),

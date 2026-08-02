@@ -2,11 +2,13 @@
 
 import { Note, PageHeader, RequiresConnection, RequiresSafe } from "@/components/app-shell";
 import { Card, Empty, Pill } from "@/components/primitives";
-import { useConnection, useModuleOf } from "@/lib/hooks";
+import { useActiveSafe } from "@/lib/active-safe";
+import { useModuleOf } from "@/lib/hooks";
 
 export default function MembersPage() {
-  const { address } = useConnection();
-  const module = useModuleOf(address);
+  // Keyed by Safe, not by the connected wallet. See the note on `useModuleOf`.
+  const { safe } = useActiveSafe();
+  const module = useModuleOf(safe);
   const hasModule =
     module.data !== undefined && module.data !== "0x0000000000000000000000000000000000000000";
 

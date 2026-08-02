@@ -5,13 +5,15 @@ import Link from "next/link";
 import { Note, PageHeader, RequiresConnection } from "@/components/app-shell";
 import { AddressLink, Card, Empty, Pill, Stat } from "@/components/primitives";
 import { ROUTE, TOTAL_CONTRACTS, contractAddress } from "@/lib/deployment";
-import { useConnection, useModuleOf, usePrivacyFloors, useSafeCount } from "@/lib/hooks";
+import { useActiveSafe } from "@/lib/active-safe";
+import { useModuleOf, usePrivacyFloors, useSafeCount } from "@/lib/hooks";
 
 export default function OverviewPage() {
-  const { address } = useConnection();
   const safeCount = useSafeCount();
   const floors = usePrivacyFloors();
-  const module = useModuleOf(address);
+  // Keyed by Safe, not by the connected wallet. See the note on `useModuleOf`.
+  const { safe } = useActiveSafe();
+  const module = useModuleOf(safe);
 
   const hasModule =
     module.data !== undefined &&
