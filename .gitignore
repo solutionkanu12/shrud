@@ -25,3 +25,4 @@ offchain-services.log
 
 # Local state for scripts/ops/prove-order.ts
 .prove-order.json
+.prove-clearing.json

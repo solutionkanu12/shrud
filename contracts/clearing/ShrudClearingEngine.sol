@@ -433,7 +433,17 @@ contract ShrudClearingEngine is ShrudHandleIsolation {
     function runCrossing(bytes32 epochId) external {
         EpochCompute storage epoch = _requireStage(epochId, Stage.Accumulated);
         pauseController.requireNotHalted(ShrudPauseController.Activity.Clear);
-        _requireCursorFinished(epochId, epoch);
+
+        // THE CURSOR IS NOT CHECKED HERE, AND MUST NOT BE.
+        //
+        // `_advance` resets `cursor` to zero at the moment a per-candidate stage completes, and only
+        // then sets the next stage. So an epoch that has reached `Accumulated` always has a cursor of
+        // zero, and the previous `_requireCursorFinished` demanded `cursor == count` — satisfiable
+        // only by an epoch with no candidates at all. Every real epoch reverted `StageNotFinished`
+        // here and could never progress past accumulation.
+        //
+        // Being in `Accumulated` is already the proof this check was reaching for: `_advance` sets
+        // that stage only when `end == count`, which is every candidate.
 
         euint256 zero = euint256.wrap(epoch.zero);
         euint256 grossBuy = euint256.wrap(epoch.grossBuyDemandBase);
@@ -857,12 +867,6 @@ contract ShrudClearingEngine is ShrudHandleIsolation {
         if (epoch.stage == Stage.None) revert EpochUnknown(epochId);
         if (epoch.stage != expected) revert WrongStage(epochId, expected, epoch.stage);
         return epoch;
-    }
-
-    function _requireCursorFinished(bytes32 epochId, EpochCompute storage epoch) private view {
-        if (epoch.cursor != epoch.count) {
-            revert StageNotFinished(epochId, epoch.stage, epoch.cursor, epoch.count);
-        }
     }
 
     function _batchEnd(EpochCompute storage epoch, uint16 maxCandidates) private view returns (uint16) {
