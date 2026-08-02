@@ -119,9 +119,9 @@ For the main DoraHacks description field.
 | Demo video | *your 3 minute video* |
 | Live app | *your Vercel URL* |
 | Network | Ethereum Sepolia (11155111) |
-| Intent book | `0x45525d5625a3c0cbd79162035bca4a62d1855fc2` |
-| Clearing engine | `0xcf30be6884105a27e54a342acd3e53dabdbc8e7c` |
-| Settlement engine | `0x8b34e00c984c4e6d96e06c271ccbada1cd2af0f6` |
+| Intent book | `0xbcfc7e6b8854683d996efa6f097fb28d86f8a2f9` |
+| Clearing engine | `0xfa593b0f5e6c4c470ffc0b0ba2b71c22796799fa` |
+| Settlement engine | `0xa0b296f3375671c90e0774146545e3c2ac26a6a1` |
 | Licence | GPL-3.0-or-later |
 
 ---

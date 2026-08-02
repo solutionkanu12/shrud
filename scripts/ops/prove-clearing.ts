@@ -235,19 +235,32 @@ async function main(): Promise<void> {
     say("    already sealed");
   }
 
-  const stages: [string, unknown[]][] = [
-    ["runClassification", [epochId, 16]],
-    ["runAccumulation", [epochId, 16]],
-    ["runCrossing", [epochId]],
-    ["runAllocation", [epochId, 16]],
-    ["runResidual", [epochId, 16]],
-    ["publishResidual", [epochId]],
+  // Each stage names the stage it CONSUMES, so a resumed run skips whatever already happened
+  // instead of replaying it into a WrongStage revert.
+  //
+  // ResidualComputed -> Published is `finaliseResidual`. `publishResidual` REQUIRES Published, so it
+  // reads the finalised result rather than producing it.
+  const stages: [string, number, unknown[]][] = [
+    ["runClassification", 1, [epochId, 16]],
+    ["runAccumulation", 2, [epochId, 16]],
+    ["runCrossing", 3, [epochId]],
+    ["runAllocation", 4, [epochId, 16]],
+    ["runResidual", 5, [epochId, 16]],
+    ["finaliseResidual", 6, [epochId, 16]],
+    ["publishResidual", 7, [epochId]],
   ];
-  for (const [fn, args] of stages) {
+  const stageNow = async () =>
+    ((await pub.readContract({ address: engine, abi: engineAbi, functionName: "epochOf", args: [epochId] })) as { stage: number }).stage;
+
+  for (const [fn, consumes, args] of stages) {
+    const current = await stageNow();
+    if (current > consumes) {
+      say(`\n${fn}: already past (stage ${current})`);
+      continue;
+    }
     say(`\n${fn}`);
     await spend(fn, await wallet.writeContract({ address: engine, abi: engineAbi, functionName: fn, args }));
-    const e = (await pub.readContract({ address: engine, abi: engineAbi, functionName: "epochOf", args: [epochId] })) as { stage: number };
-    say(`    stage now ${e.stage}`);
+    say(`    stage now ${await stageNow()}`);
   }
 
   say("\nEPOCH CLEARED.");
