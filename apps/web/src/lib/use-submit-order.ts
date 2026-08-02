@@ -111,6 +111,15 @@ export function useSubmitOrder({ safe, module }: { safe: Address; module: Addres
           // The limit is quote units per WHOLE base unit, scaled — never per raw unit.
           const limitScaled = (parseUnits(input.limit, 6) * PRICE_SCALE) / 10n ** 6n;
 
+          // Sequential per owner. The module reverts WrongNonce on anything else, and a timestamp
+          // is the obvious wrong guess.
+          const nonce = (await publicClient.readContract({
+            address: module,
+            abi: safeModuleAbi,
+            functionName: "nextNonce",
+            args: [walletClient.account.address],
+          })) as bigint;
+
           const built = await buildOrder({
             walletClient,
             publicClient,
@@ -121,6 +130,7 @@ export function useSubmitOrder({ safe, module }: { safe: Address; module: Addres
             limit: limitScaled,
             epochId,
             expirySeconds: 3600,
+            nonce,
           });
           push("Amount, side and limit encrypted");
 

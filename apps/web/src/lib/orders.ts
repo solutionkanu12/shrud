@@ -100,6 +100,8 @@ export async function buildOrder(params: {
   limit: bigint;
   epochId: Hex;
   expirySeconds: number;
+  /** Sequential per owner, read from the module. A timestamp here reverts WrongNonce. */
+  nonce: bigint;
 }): Promise<BuiltOrder> {
   const noxSdk = await createViemHandleClient(params.walletClient as never);
 
@@ -136,7 +138,7 @@ export async function buildOrder(params: {
     inputAsset: inputAssetFor(params.side),
     epochId: params.epochId,
     expiry: BigInt(Math.floor(Date.now() / 1000) + params.expirySeconds),
-    nonce: BigInt(Date.now()),
+    nonce: params.nonce,
     action: params.side === "buy" ? ACTION.BUY_BASE : ACTION.SELL_BASE,
     amount: params.amount,
     limit: params.limit,

@@ -22,3 +22,6 @@ broadcast/*/dry-run/
 
 # Written by the Nox hardhat plugin when the offchain stack starts.
 offchain-services.log
+
+# Local state for scripts/ops/prove-order.ts
+.prove-order.json
