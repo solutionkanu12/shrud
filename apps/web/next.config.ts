@@ -83,6 +83,7 @@ const config: NextConfig = {
     "@shrud/shared",
     "@shrud/clearing-math",
     "@shrud/sdk",
+    "@shrud/safe-client",
   ],
   turbopack: {
     resolveAlias: aliasTo(STUB_RELATIVE),
