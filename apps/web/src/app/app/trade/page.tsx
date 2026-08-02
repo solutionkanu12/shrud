@@ -3,12 +3,14 @@
 import { useState } from "react";
 
 import Link from "next/link";
-import { zeroAddress } from "viem";
+import { type Address, zeroAddress } from "viem";
 
 import { Note, PageHeader, RequiresConnection } from "@/components/app-shell";
 import { Card, Empty, Pill } from "@/components/primitives";
 import { useActiveSafe } from "@/lib/active-safe";
+import { explorerUrl } from "@/lib/deployment";
 import { useModuleOf } from "@/lib/hooks";
+import { useSubmitOrder } from "@/lib/use-submit-order";
 
 type Side = "buy" | "sell";
 
@@ -26,8 +28,8 @@ export default function TradePage() {
         badge={<Pill tone="confidential">Confidential</Pill>}
       />
       <RequiresConnection>
-        {hasModule ? (
-          <OrderForm />
+        {hasModule && safe !== undefined ? (
+          <OrderForm safe={safe} module={module.data as Address} />
         ) : (
           <Empty
             title={safe === undefined ? "No treasury selected" : "This Safe has no shrud module"}
@@ -46,14 +48,15 @@ export default function TradePage() {
   );
 }
 
-function OrderForm() {
+function OrderForm({ safe, module }: { safe: Address; module: Address }) {
   const [side, setSide] = useState<Side>("buy");
   const [amount, setAmount] = useState("");
   const [limit, setLimit] = useState("");
+  const submission = useSubmitOrder({ safe, module });
 
   const amountValid = amount !== "" && Number(amount) > 0;
   const limitValid = limit !== "" && Number(limit) > 0;
-  const ready = amountValid && limitValid;
+  const ready = amountValid && limitValid && !submission.busy;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
@@ -108,19 +111,51 @@ function OrderForm() {
 
         <button
           type="button"
-          className="btn btn-quiet mt-6 w-full"
-          disabled
-          title="Encryption runs against the Nox gateway and is not wired into this interface yet"
+          className="btn btn-tangerine mt-6 w-full"
+          disabled={!ready}
+          onClick={() => {
+            submission.run({ side, amount, limit });
+          }}
         >
-          {ready ? "Submission is not wired up yet" : "Enter an amount and a limit"}
+          {submission.busy ? submission.stage : ready ? "Encrypt and submit" : "Enter an amount and a limit"}
         </button>
 
-        <p className="mt-3 rounded-[20px] bg-[#fff0e0] p-4 text-caption text-[#9c5500]">
-          This form does not submit. Amount, side and limit have to be encrypted against the Nox
-          gateway before `submitIntent` can be called, and that path is not built in this interface
-          yet. The button is disabled rather than silently doing nothing, because an enabled action
-          that no-ops reads as a product that worked when it did not. Onboarding and wrapping on the
-          setup page are wired and do send real transactions.
+        {submission.steps.length > 0 && (
+          <ol className="mt-4 flex flex-col gap-2">
+            {submission.steps.map((step) => (
+              <li key={step.label} className="flex items-start gap-2 text-caption">
+                <span aria-hidden="true">{step.done ? "✓" : step.active ? "•" : "·"}</span>
+                <span className={step.done ? "text-stone" : "font-bold"}>
+                  {step.label}
+                  {step.hash !== undefined && (
+                    <>
+                      {" "}
+                      <a
+                        href={explorerUrl(step.hash, "tx")}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-bold text-[#5c3fa8] underline-offset-4 hover:underline"
+                      >
+                        Etherscan
+                      </a>
+                    </>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {submission.error !== undefined && (
+          <p className="mt-3 rounded-[20px] bg-[#fff0e0] p-4 text-caption text-[#9c5500]">
+            {submission.error}
+          </p>
+        )}
+
+        <p className="mt-3 text-caption text-stone">
+          Submitting requires a Safe owner signature over the intent digest. The commitment is
+          recomputed from your plaintext before you sign, so the interface cannot show you one order
+          and submit another.
         </p>
       </Card>
 

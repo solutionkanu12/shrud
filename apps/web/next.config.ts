@@ -77,6 +77,18 @@ const aliasTo = (target: string): Record<string, string> =>
 
 const config: NextConfig = {
   reactStrictMode: true,
+  /**
+   * Next runs `tsc` again inside a build worker, and that worker crashes on this project.
+   *
+   * The Nox handle SDK's generics compose with viem's to a depth the worker cannot survive — it dies
+   * with a stack-buffer overrun (Windows 3221226505) after reporting "Compiled successfully". The
+   * types themselves are fine: `tsc --noEmit` over the identical tsconfig passes, and the build
+   * script runs it BEFORE `next build` precisely so a type error still fails the build.
+   *
+   * This disables the duplicate check, not the check. Removing `tsc --noEmit` from the build script
+   * is what would make it unsafe.
+   */
+  typescript: { ignoreBuildErrors: true },
   env: loadRootEnv(),
   transpilePackages: [
     "@shrud/contracts-generated",
@@ -84,6 +96,7 @@ const config: NextConfig = {
     "@shrud/clearing-math",
     "@shrud/sdk",
     "@shrud/safe-client",
+    "@shrud/nox-client",
   ],
   turbopack: {
     resolveAlias: aliasTo(STUB_RELATIVE),
