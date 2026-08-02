@@ -128,7 +128,8 @@ function OrderForm({ safe, module }: { safe: Address; module: Address }) {
 
         {submission.done && (
           <p className="mt-4 rounded-[20px] bg-[#e0f5e9] p-4 text-body font-bold text-[#1f6640]">
-            Order submitted, activated and funded. It is live in the epoch below.
+            Order submitted and activated. Whether it locked anything is encrypted — an
+            underfunded order and a genuine zero are indistinguishable by design, including to you.
           </p>
         )}
 

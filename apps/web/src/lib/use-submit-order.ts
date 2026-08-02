@@ -194,7 +194,11 @@ export function useSubmitOrder({ safe, module }: { safe: Address; module: Addres
             account: walletClient.account,
           });
           await publicClient.waitForTransactionReceipt({ hash: activateHash });
-          push("Order active and funds locked", activateHash);
+          // NOT "funds locked". The lock moves an encrypted amount, and Nox's safeSub returns
+          // encrypted zero on an insufficient balance without reverting — so a successful
+          // transaction proves the lock was attempted, never that anything moved. Claiming
+          // otherwise asserts the one fact this protocol exists to keep unknowable.
+          push("Order activated", activateHash);
           setSteps([...finished]);
           setDone(true);
         } catch (caught) {
