@@ -29,7 +29,7 @@
     "test:fuzz": "forge test --match-path 'test/fuzz/*' -vv",
     "test:nox": "hardhat test",
     "test:unit": "forge test --match-path 'test/unit/*' -vv",
-    "test:fork": "forge test --match-path 'test/fork/*' -vv --fork-url $SEPOLIA_RPC_URL",
+    "test:fork": "FOUNDRY_PROFILE=fork forge test --match-path 'test/fork/*' -vv --fork-url \"${SEPOLIA_RPC_URL:-$ALCHEMY_API_URL$ALCHEMY_API_KEY}\"",
     "typecheck": "tsc --build --force",
     "verify:aave": "tsx scripts/verify-live/aave.ts",
     "verify:allocations": "tsx scripts/verify-live/allocations.ts",
@@ -45,7 +45,7 @@
     "verify:safe": "tsx scripts/verify-live/safe.ts",
     "verify:uniswap": "tsx scripts/verify-live/uniswap.ts",
     "test:contracts": "hardhat test",
-    "test:packages": "pnpm build:packages && pnpm -r --if-present test",
+    "test:packages": "pnpm build:packages && pnpm -r --filter \"!shrud\" --if-present test",
     "verify:etherscan": "tsx scripts/deploy/verify-etherscan.ts",
     "dev": "pnpm --filter @shrud/web dev",
     "build:web": "pnpm --filter @shrud/web build"
