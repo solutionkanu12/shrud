@@ -1,9 +1,72 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { type Address, type Hex } from "viem";
+import { usePublicClient } from "wagmi";
+
 import { Note, PageHeader } from "@/components/app-shell";
 import { Card, Empty, Pill } from "@/components/primitives";
-import { ROUTE } from "@/lib/deployment";
+import { useActiveSafe } from "@/lib/active-safe";
+import { CHAIN_ID, contractAddress, ROUTE } from "@/lib/deployment";
 import { usePrivacyFloors } from "@/lib/hooks";
+import { intentBookAbi } from "@/lib/orders";
+
+/** `ShrudIntentBook.EpochStatus`. */
+const EPOCH_STATUS = [
+  "None", "Open", "Sealed", "Price fixed", "Computing",
+  "Residual ready", "No public residual", "Settling", "Settled", "Timed out", "Recoverable",
+] as const;
+
+interface EpochRecord {
+  readonly status: number;
+  readonly candidateCount: number;
+  readonly sealedAtBlock: bigint;
+  readonly settledAtBlock: bigint;
+  readonly priceSnapshotId: Hex;
+  readonly referencePrice: bigint;
+}
+
+/**
+ * The epochs THIS treasury is in, found through its own orders.
+ *
+ * There is no enumeration of epochs on chain and no `currentEpoch()` getter, and scanning
+ * `EpochOpened` logs is not viable from a browser on a rate-limited RPC — the provider caps
+ * `eth_getLogs` to a handful of blocks. Every order header carries its `epochId`, so the treasury's
+ * own orders name exactly the epochs worth showing it, and nothing else.
+ */
+function useEpochs(safe: Address | undefined) {
+  const client = usePublicClient({ chainId: CHAIN_ID });
+
+  return useQuery<{ id: Hex; record: EpochRecord }[]>({
+    queryKey: ["shrud", "epochs", safe],
+    enabled: safe !== undefined && client !== undefined,
+    refetchInterval: 15_000,
+    queryFn: async () => {
+      const book = contractAddress("ShrudIntentBook");
+      const ids = (await client!.readContract({
+        address: book, abi: intentBookAbi, functionName: "intentsOfSafe", args: [safe as Address],
+      })) as Hex[];
+
+      const epochIds = new Set<Hex>();
+      for (const id of ids) {
+        const header = (await client!.readContract({
+          address: book, abi: intentBookAbi, functionName: "headerOf", args: [id],
+        })) as { epochId: Hex };
+        epochIds.add(header.epochId);
+      }
+
+      const records = await Promise.all(
+        [...epochIds].map(async (id) => ({
+          id,
+          record: (await client!.readContract({
+            address: book, abi: intentBookAbi, functionName: "epochOf", args: [id],
+          })) as EpochRecord,
+        })),
+      );
+      return records.sort((a, b) => b.record.status - a.record.status);
+    },
+  });
+}
 
 const STAGES = [
   { name: "Open", body: "The epoch accepts candidates. Orders join by being authorised." },
@@ -17,6 +80,8 @@ const STAGES = [
 
 export default function ClearingPage() {
   const floors = usePrivacyFloors();
+  const { safe } = useActiveSafe();
+  const epochs = useEpochs(safe);
 
   return (
     <>
@@ -27,12 +92,49 @@ export default function ClearingPage() {
       />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <Card>
-          <Empty title="No epochs yet">
-            An epoch opens when orders exist to clear. This deployment has none, because it was
-            published with nothing in it. Epochs will appear here as they open, seal and settle.
-          </Empty>
-        </Card>
+        {epochs.data !== undefined && epochs.data.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {epochs.data.map(({ id, record }) => (
+              <Card key={id}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Pill tone={record.status >= 5 ? "settled" : "public"}>
+                    {EPOCH_STATUS[record.status] ?? record.status}
+                  </Pill>
+                  <Pill tone="neutral">
+                    {record.candidateCount} candidate{record.candidateCount === 1 ? "" : "s"}
+                  </Pill>
+                  {record.candidateCount >= 3 && <Pill tone="settled">meets k = 3</Pill>}
+                </div>
+
+                <dl className="mt-4 flex flex-col gap-2">
+                  <ERow label="Epoch" value={`${id.slice(0, 22)}…`} />
+                  {record.referencePrice > 0n && (
+                    <ERow label="Reference price" value={`${record.referencePrice} raw USDC per raw WETH x1e18`} />
+                  )}
+                  {record.sealedAtBlock > 0n && (
+                    <ERow label="Sealed at block" value={record.sealedAtBlock.toString()} />
+                  )}
+                  {record.priceSnapshotId !== "0x0000000000000000000000000000000000000000000000000000000000000000" && (
+                    <ERow label="Price snapshot" value={`${record.priceSnapshotId.slice(0, 22)}…`} />
+                  )}
+                </dl>
+
+                <p className="mt-3 text-caption text-stone">
+                  The direction, the aggregate and whether the floors passed are all still handles on
+                  chain. This epoch completed and published nothing anyone can decompose.
+                </p>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <Empty title={epochs.isLoading ? "Reading the intent book…" : "No epochs yet"}>
+              {safe === undefined
+                ? "Connect a Safe and the epochs its orders joined will appear here."
+                : "An epoch opens when orders exist to clear. Epochs this treasury has joined appear here as they open, seal and settle."}
+            </Empty>
+          </Card>
+        )}
 
         <Card tone="cloud">
           <p className="type-subheading">Floors</p>
@@ -109,6 +211,15 @@ function FloorRow({
         </span>
       </div>
       <p className="mt-1 text-caption text-stone">{body}</p>
+    </div>
+  );
+}
+
+function ERow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="text-caption text-stone">{label}</dt>
+      <dd className="truncate font-mono text-caption">{value}</dd>
     </div>
   );
 }
